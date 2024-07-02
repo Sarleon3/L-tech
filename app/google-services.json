@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "260431791399",
+    "project_id": "l-tech-af7df",
+    "storage_bucket": "l-tech-af7df.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260431791399:android:3b16e69823a011e8439502",
+        "android_client_info": {
+          "package_name": "com.example.l_tech"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhFQ7n4xBa2xg5lwmy8RK-8BnzIPyX_4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
