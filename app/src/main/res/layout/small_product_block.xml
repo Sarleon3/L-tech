@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/shape"
+    android:backgroundTint="#e6e6e6"
+    android:padding="8dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:background="#e6e6e6"
+        android:layout_height="wrap_content">
+
+
+        <TextView
+            android:id="@+id/small_category_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Название категории"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:background="#e6e6e6"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/small_view_all_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:clickable="true"
+            android:background="#e6e6e6"
+            android:text="Все"
+            android:padding="8dp" />
+    </FrameLayout>
+
+    <!-- RecyclerView для горизонтального списка товаров -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/product_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:scrollbars="horizontal" />
+</LinearLayout>

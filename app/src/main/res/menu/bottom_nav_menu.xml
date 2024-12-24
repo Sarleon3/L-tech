@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/home_line"
+        android:title="главная" />
+
+    <item
+        android:id="@+id/navigation_catalog"
+        android:icon="@drawable/menu_search_line"
+        android:title="каталог" />
+    <item
+        android:id="@+id/navigation_favorite"
+        android:icon="@drawable/_643770_favorite_heart_like_likes_love_icon"
+        android:title="избранное" />
+
+    <item
+        android:id="@+id/navigation_notifications"
+        android:icon="@drawable/shopping_cart_line"
+        android:title="корзина" />
+
+    <item
+        android:id="@+id/navigation_dashboard"
+        android:icon="@drawable/user_line"
+        android:title="профиль" />
+
+</menu>
