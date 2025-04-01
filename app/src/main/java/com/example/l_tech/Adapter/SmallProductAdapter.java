@@ -1,89 +1,137 @@
 package com.example.l_tech.Adapter;
 
-import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
 import com.example.l_tech.Model.Product;
 import com.example.l_tech.R;
-import com.example.l_tech.Repozitory.ProductRepository;
+import com.example.l_tech.Repozitory.UserDataListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
 public class SmallProductAdapter extends RecyclerView.Adapter<SmallProductAdapter.ViewHolder> {
-    private final List<Product> productList;
-    private final Context context;
+    private final List<Product> products;
+    private final String userId;
+    private final UserDataListener userDataListener;
 
-    public SmallProductAdapter(Context context, List<Product> products) {
-        this.context = context;
-        this.productList = products;
-    }
-
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.small_product_item, parent, false);
-        return new ViewHolder(view);
+    public SmallProductAdapter(List<Product> products, String userId, UserDataListener userDataListener) {
+        this.products = products;
+        this.userId = userId;
+        this.userDataListener = userDataListener;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Product product = productList.get(position);
-        holder.productImage.setImageResource(product.getImageResId());
-        holder.productNameText.setText(product.getName());
-        holder.productCode.setText(String.valueOf(product.getCode()));
-        holder.productRatingText.setText(String.valueOf(product.getRating()));
-        holder.ProductPrice.setText((String.format("%.2f"+" ₽", product.getPrice())));
-
-        holder.favoriteButton.setImageResource(
-                product.isFavorite() ? R.drawable.fill_heart_icon : R.drawable.heart_icon
-        );
-
-        holder.favoriteButton.setOnClickListener(v -> {
-            boolean newFavoriteStatus = !product.isFavorite();
-            ProductRepository.getInstance().updateFavoriteStatus(product, newFavoriteStatus);
-            product.setFavorite(newFavoriteStatus);
-
-            // Обновляем иконку на кнопке в зависимости от состояния избранного
-            holder.favoriteButton.setImageResource(
-                    newFavoriteStatus ? R.drawable.fill_heart_icon : R.drawable.heart_icon
-            );
-
-            // Уведомляем адаптер об изменении позиции
-            notifyItemChanged(position);
-        });
-
-    }
-    public void updateData(List<Product> newProducts) {
-        this.productList.clear();
-        this.productList.addAll(newProducts);
-        notifyDataSetChanged();
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.small_product_item, parent, false);
+        return new ViewHolder(view, userDataListener);
     }
 
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        Product product = products.get(position);
+        holder.bind(product);
+    }
 
     @Override
     public int getItemCount() {
-        return productList.size();
+        return products.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView productImage;
-        TextView productNameText, productRatingText,ProductPrice,productCode;
-        ImageButton favoriteButton;
+    public void updateProductFavoriteState(int productId) {
+        userDataListener.isFavorite(String.valueOf(productId), isFavorite -> {
+            for (int i = 0; i < products.size(); i++) {
+                if (products.get(i).getProductId() == productId) {
+                    notifyItemChanged(i); // Обновляем только нужный элемент
+                    break;
+                }
+            }
+        });
+    }
 
-        public ViewHolder(@NonNull View itemView) {
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        private final TextView productName, productPrice, productRating, productCode;
+        private final ImageView productImage, starIcon;
+        private final ImageButton favoriteButton;
+        private final UserDataListener userDataListener;
+
+        public ViewHolder(View itemView, UserDataListener userDataListener) {
             super(itemView);
-            favoriteButton = itemView.findViewById(R.id.favoriteButton);
+            this.userDataListener = userDataListener;
+            productName = itemView.findViewById(R.id.productNameText);
+            productPrice = itemView.findViewById(R.id.PriceText);
+            productRating = itemView.findViewById(R.id.productRatingText);
             productCode = itemView.findViewById(R.id.productCodeText);
             productImage = itemView.findViewById(R.id.productImage);
-            productNameText = itemView.findViewById(R.id.productNameText);
-            productRatingText = itemView.findViewById(R.id.productRatingText);
-            ProductPrice = itemView.findViewById(R.id.PriceText);
+            starIcon = itemView.findViewById(R.id.star);
+            favoriteButton = itemView.findViewById(R.id.favoriteButton);
+        }
+
+        public void bind(Product product) {
+            productCode.setText(String.valueOf(product.getProductId()));
+            productName.setText(product.getProductName());
+            productPrice.setText(String.format("%.2f ₽", product.getPrice()));
+            productRating.setText(String.valueOf(product.getRating()));
+
+            // Загружаем изображение
+            Glide.with(itemView.getContext())
+                    .load(product.getImage())
+                    .into(productImage);
+
+            // Инициализация состояния кнопки "избранное"
+            setupFavoritesListener(product);
+
+            // Обработка клика на кнопку "избранное"
+            favoriteButton.setOnClickListener(v -> {
+                userDataListener.isFavorite(String.valueOf(product.getProductId()), isFavorite -> {
+                    if (isFavorite) {
+                        userDataListener.removeFromFavorites(String.valueOf(product.getProductId()));
+                        favoriteButton.setImageResource(R.drawable.heart_icon);
+                    } else {
+                        userDataListener.addToFavorites(String.valueOf(product.getProductId()));
+                        favoriteButton.setImageResource(R.drawable.fill_heart_icon);
+                    }
+                    // Обновляем UI
+                    notifyItemChanged(getAdapterPosition());
+                });
+            });
+        }
+
+        private void setupFavoritesListener(Product product) {
+            // Создаем слушатель для отслеживания изменений в избранных товарах
+            FirebaseDatabase.getInstance().getReference("users").child(userId).child("favorites")
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                for (DataSnapshot favoriteSnapshot : snapshot.getChildren()) {
+                                    if (favoriteSnapshot.getKey().equals(String.valueOf(product.getProductId()))) {
+                                        favoriteButton.setImageResource(R.drawable.fill_heart_icon); // Если в избранном, иконка заполнена
+                                        return;
+                                    }
+                                }
+                            }
+                            favoriteButton.setImageResource(R.drawable.heart_icon); // Если не в избранном, иконка пустая
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Log.e("FavoritesListener", "Ошибка: " + error.getMessage());
+                        }
+                    });
         }
     }
 }

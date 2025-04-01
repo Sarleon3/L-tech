@@ -11,11 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.l_tech.Adapter.ProductWithCartAdapter;
-import com.example.l_tech.Model.Product;
 import com.example.l_tech.R;
-import com.example.l_tech.Repozitory.ProductRepository;
-
-import java.util.List;
 
 public class favorite extends Fragment {
 
@@ -45,11 +41,8 @@ public class favorite extends Fragment {
         recyclerViewFavorites.setLayoutManager(new GridLayoutManager(getContext(), 2)); // Сетка с 2 колонками
 
         // Получаем список избранных товаров
-        List<Product> favoriteProducts = ProductRepository.getInstance().getFavoriteProducts();
 
-        // Создаем адаптер и устанавливаем его в RecyclerView
-        adapter = new ProductWithCartAdapter(getContext(), favoriteProducts);
-        recyclerViewFavorites.setAdapter(adapter);
+
 
         return view;
     }
@@ -57,7 +50,6 @@ public class favorite extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Обновляем данные избранных товаров при возвращении к фрагменту
-        List<Product> updatedFavoriteProducts = ProductRepository.getInstance().getFavoriteProducts();
+
     }
 }

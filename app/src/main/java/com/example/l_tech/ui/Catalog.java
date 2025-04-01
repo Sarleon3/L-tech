@@ -63,7 +63,7 @@ public class Catalog extends Fragment {
     }
 
     private void loadParentProductTypes() {
-        ProductTypeApi api = RetrofitClient.getRetrofitInstance().create(ProductTypeApi.class);
+        ProductTypeApi api = RetrofitClient.getInstance().getRetrofit().create(ProductTypeApi.class);
         Call<List<ProductType>> call = api.getParentProductTypes();
 
         call.enqueue(new Callback<List<ProductType>>() {
@@ -86,7 +86,7 @@ public class Catalog extends Fragment {
     }
 
     private void fetchChildCategories(String parentName) {
-        ProductTypeApi api = RetrofitClient.getRetrofitInstance().create(ProductTypeApi.class);
+        ProductTypeApi api = RetrofitClient.getInstance().getRetrofit().create(ProductTypeApi.class);
         Call<List<ProductType>> call = api.getChildProductTypes(parentName);
 
         call.enqueue(new Callback<List<ProductType>>() {

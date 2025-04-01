@@ -1,116 +1,158 @@
 package com.example.l_tech.ui.home;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.l_tech.Adapter.BannerAdapter;
-import com.example.l_tech.Adapter.ProductWithCartAdapter;
-import com.example.l_tech.Adapter.SmallProductAdapter;
-import com.example.l_tech.Model.Banner;
 import com.example.l_tech.Model.Product;
+import com.example.l_tech.Model.ProductBlock;
+import com.example.l_tech.Model.ProductBlockType;
 import com.example.l_tech.R;
-import com.example.l_tech.Repozitory.BannerRepozitory;
-import com.example.l_tech.Repozitory.ProductRepository;
-import com.example.l_tech.databinding.FragmentHomeBinding;
+import com.example.l_tech.Repozitory.UserDataListener;
+import com.example.l_tech.retofit2_API.RetrofitClient;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HomeFragment extends Fragment {
 
-    private FragmentHomeBinding binding;
-    private ProductRepository productRepository;
+    private static final String TAG = "HomeFragment";  // Тэг для логирования
 
-    // Переменные адаптеров для каждой категории
-    private ProductWithCartAdapter categoryAAdapter;
-    private SmallProductAdapter categoryBAdapter;
-    private ProductWithCartAdapter categoryCAdapter;
-    private SmallProductAdapter categoryDAdapter;
+    private RecyclerView recyclerView;
+    private HomeAdapter homeAdapter;
+    private List<ProductBlock> blocks = new ArrayList<>();
+    String userId = "testUser123"; // Или FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private UserDataListener.DataChangeCallback callback;
+    private UserDataListener userDataListener;
 
-    String Category1 = "Category A";
-    String Category2 = "Category B";
-    String Category3 = "Category C";
-    String Category4 = "Category D";
+
+    private final List<Pair<String, ProductBlockType>> categoryBlocks = Arrays.asList(
+            new Pair<>("Смартфоны", ProductBlockType.SMALL),
+            new Pair<>("Смартфоны", ProductBlockType.WITH_CART),
+            new Pair<>("Смартфоны", ProductBlockType.SMALL),
+            new Pair<>("Смартфоны", ProductBlockType.WITH_CART),
+             new Pair<>("Смартфоны", ProductBlockType.WITH_CART)
+    );
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView: фрагмент загружается");
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
+        recyclerView = view.findViewById(R.id.containerLayout);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
+        // Создаем callback
+        callback = new UserDataListener.DataChangeCallback() {
+            @Override
+            public void onCartUpdated(String cartData) {
+                // Логика обновления корзины
+            }
 
-        // Инициализация репозитория
-        productRepository = ProductRepository.getInstance();
+            @Override
+            public void onFavoritesUpdated(String favoriteId) {
+                // Логика обновления избранного
+                Log.d(TAG, "Избранное обновлено: " + favoriteId);
+            }
 
-        // Настройка ViewPager2 для баннеров
-        List<Banner> banners = BannerRepozitory.getBanners();
-        BannerAdapter bannerAdapter = new BannerAdapter(getContext(), banners);
-        binding.bannerViewPager.setAdapter(bannerAdapter);
+            @Override
+            public void onOrdersUpdated(String ordersData) {
+                // Логика обновления заказов
+            }
 
-        // Загрузка данных для категорий
-        List<Product> categoryAProducts = productRepository.getProductsByCategory(Category1);
-        List<Product> categoryBProducts = productRepository.getProductsByCategory(Category2);
-        List<Product> categoryCProducts = productRepository.getProductsByCategory(Category3);
-        List<Product> categoryDProducts = productRepository.getProductsByCategory(Category4);
+            @Override
+            public void onReviewsUpdated(String reviewsData) {
+                // Логика обновления отзывов
+            }
+        };
+        userDataListener = new UserDataListener(userId, callback);
 
-        // Настройка блока Category A с адаптером
-        View categoryAView = inflater.inflate(R.layout.product_with_cart_block, container, false);
-        binding.containerLayout.addView(categoryAView);
-        categoryAAdapter = new ProductWithCartAdapter(getContext(), categoryAProducts);
-        TextView categoryATextView = categoryAView.findViewById(R.id.cart_category_title);
-        categoryATextView.setText(Category1);
-        RecyclerView categoryARecycler = categoryAView.findViewById(R.id.cart_product_recycler);
-        categoryARecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        categoryARecycler.setAdapter(categoryAAdapter);
-
-        // Настройка блока Category B с адаптером
-        View categoryBView = inflater.inflate(R.layout.small_product_block , container, false);
-        binding.containerLayout.addView(categoryBView);
-        categoryBAdapter = new SmallProductAdapter(getContext(), categoryBProducts);
-        TextView categoryBTextView = categoryBView.findViewById(R.id.small_category_title);
-        categoryBTextView.setText(Category2);
-        RecyclerView categoryBRecycler = categoryBView.findViewById(R.id.product_recycler_view);
-        categoryBRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        categoryBRecycler.setAdapter(categoryBAdapter);
-
-        // Настройка блока Category C с адаптером
-        View categoryCView = inflater.inflate(R.layout.product_with_cart_block, container, false);
-        binding.containerLayout.addView(categoryCView);
-        categoryCAdapter = new ProductWithCartAdapter(getContext(), categoryCProducts);
-        TextView categoryCTextView = categoryCView.findViewById(R.id.cart_category_title);
-        categoryCTextView.setText(Category3);
-        RecyclerView categoryCRecycler = categoryCView.findViewById(R.id.cart_product_recycler);
-        categoryCRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        categoryCRecycler.setAdapter(categoryCAdapter);
-
-        // Настройка блока Category D с адаптером
-        View categoryDView = inflater.inflate(R.layout.small_product_block, container, false);
-        binding.containerLayout.addView(categoryDView);
-        categoryDAdapter = new SmallProductAdapter(getContext(), categoryDProducts);
-        TextView categoryDTextView = categoryDView.findViewById(R.id.small_category_title);
-        categoryDTextView.setText(Category4);
-        RecyclerView categoryDRecycler = categoryDView.findViewById(R.id.product_recycler_view);
-        categoryDRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        categoryDRecycler.setAdapter(categoryDAdapter);
-
-
-
-        return root;
+        loadProducts(); // Загружаем продукты
+        return view;
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
     }
+
+
+
+    private void loadProducts() {
+        AtomicInteger completedRequests = new AtomicInteger(0);
+        Log.d(TAG, "loadProducts: Начинаем загрузку продуктов. Всего категорий: " + categoryBlocks.size());
+
+        for (Pair<String, ProductBlockType> entry : categoryBlocks) {
+            String category = entry.first;
+            ProductBlockType type = entry.second;
+            Log.d(TAG, "Запрос к API: категория = " + category + ", тип блока = " + type);
+
+            RetrofitClient.getInstance().getApi().getProductsByCategory(category)
+                    .enqueue(new Callback<List<Product>>() {
+                        @Override
+                        public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                List<Product> products = response.body();
+                                Log.d(TAG, "Успешный ответ от API. Категория: " + category + ". Получено товаров: " + products.size());
+
+                                if (!products.isEmpty()) {
+                                    List<Product> sublist = products.subList(0, Math.min(10, products.size()));
+
+                                    // Логирование списка товаров
+                                    for (Product product : sublist) {
+                                        Log.d(TAG, "Товар: ID=" + product.getProductId() +
+                                                ", Name=" + product.getProductName() +
+                                                ", Price=" + product.getPrice() +
+                                                ", Image=" + product.getImage());
+                                    }
+
+                                    blocks.add(new ProductBlock(type, category, sublist));
+                                } else {
+                                    Log.w(TAG, "Категория: " + category + " - пустой список товаров");
+                                }
+                            } else {
+                                Log.e(TAG, "Ошибка от API. Категория: " + category + ". Код: " + response.code() + ", Сообщение: " + response.message());
+                            }
+
+                            if (completedRequests.incrementAndGet() == categoryBlocks.size()) {
+                                updateRecyclerView();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<List<Product>> call, Throwable t) {
+                            Log.e(TAG, "Ошибка запроса к API. Категория: " + category + ". Ошибка: " + t.getMessage(), t);
+
+                            if (completedRequests.incrementAndGet() == categoryBlocks.size()) {
+                                updateRecyclerView();
+                            }
+                        }
+                    });
+        }
+    }
+
+
+
+
+    private void updateRecyclerView() {
+        requireActivity().runOnUiThread(() -> {
+            Log.d(TAG, "updateRecyclerView: обновляем список товаров в RecyclerView");
+            homeAdapter =  new HomeAdapter(getContext(), blocks, userId, userDataListener);
+            recyclerView.setAdapter(homeAdapter);
+        });
+    }
+
 }
