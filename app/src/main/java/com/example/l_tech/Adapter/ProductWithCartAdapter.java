@@ -77,7 +77,7 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
         private final View cartQuantityLayout;
         private final UserDataListener userDataListener;
 
-        private ValueEventListener favoritesListener;
+        private ValueEventListener favoritesListener, cartListener;
 
         public ViewHolder(View itemView, UserDataListener userDataListener) {
             super(itemView);
@@ -109,23 +109,20 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
 
             // Инициализация состояния кнопки "избранное"
             setupFavoritesListener(product);
+            // Инициализация состояния корзины
+            setupCartListener(product);
 
-            // Добавляем слушатель для отслеживания изменений в избранных товарах
+            // Добавляем слушатель для избранного
             favoriteButton.setOnClickListener(v -> {
-                // Проверяем состояние товара в избранном
                 userDataListener.isFavorite(String.valueOf(product.getProductId()), isFavorite -> {
                     if (isFavorite) {
-                        // Убираем из избранного
                         userDataListener.removeFromFavorites(String.valueOf(product.getProductId()));
                         favoriteButton.setImageResource(R.drawable.heart_icon);
                     } else {
-                        // Добавляем в избранное
                         userDataListener.addToFavorites(String.valueOf(product.getProductId()));
                         favoriteButton.setImageResource(R.drawable.fill_heart_icon);
                     }
-                    // Обновляем UI
-                    notifyItemChanged(getAdapterPosition()); // Перерисовываем элемент
-
+                    notifyItemChanged(getAdapterPosition()); // Обновляем UI
                 });
             });
 
@@ -134,12 +131,14 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
                 addToCartButton.setVisibility(View.GONE);
                 cartQuantityLayout.setVisibility(View.VISIBLE);
                 cartQuantity.setText("1");
+                userDataListener.addToCart(String.valueOf(product.getProductId()), 1, product.getPrice());
             });
 
             // Увеличение количества в корзине
             incrementButton.setOnClickListener(v -> {
                 int count = Integer.parseInt(cartQuantity.getText().toString());
                 cartQuantity.setText(String.valueOf(count + 1));
+                userDataListener.addToCart(String.valueOf(product.getProductId()), count + 1, product.getPrice());
             });
 
             // Уменьшение количества в корзине
@@ -147,33 +146,72 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
                 int count = Integer.parseInt(cartQuantity.getText().toString());
                 if (count > 1) {
                     cartQuantity.setText(String.valueOf(count - 1));
+                    userDataListener.addToCart(String.valueOf(product.getProductId()), count - 1, product.getPrice());
                 } else {
                     cartQuantityLayout.setVisibility(View.GONE);
                     addToCartButton.setVisibility(View.VISIBLE);
+                    userDataListener.removeFromCart(String.valueOf(product.getProductId()));
                 }
             });
         }
 
+        // Метод для отслеживания изменений в корзине
+        private void setupCartListener(Product product) {
+            if (cartListener != null) {
+                FirebaseDatabase.getInstance().getReference("users").child(userId).child("cart")
+                        .removeEventListener(cartListener);
+            }
+
+            cartListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        for (DataSnapshot cartSnapshot : snapshot.getChildren()) {
+                            if (cartSnapshot.getKey().equals(String.valueOf(product.getProductId()))) {
+                                // Получаем количество из Firebase и безопасно конвертируем в int
+                                Long quantityLong = cartSnapshot.child("quantity").getValue(Long.class);
+                                if (quantityLong != null) {
+                                    int quantity = quantityLong.intValue();  // Конвертируем Long в int
+                                    cartQuantity.setText(String.valueOf(quantity));
+                                    cartQuantityLayout.setVisibility(View.VISIBLE);
+                                    addToCartButton.setVisibility(View.GONE);
+                                }
+                                return;
+                            }
+                        }
+                    }
+                    cartQuantityLayout.setVisibility(View.GONE);
+                    addToCartButton.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("CartListener", "Ошибка при получении данных из корзины: " + error.getMessage());
+                }
+            };
+
+            FirebaseDatabase.getInstance().getReference("users").child(userId).child("cart")
+                    .addValueEventListener(cartListener);
+        }
+
         private void setupFavoritesListener(Product product) {
-            // Останавливаем старый слушатель, если он есть
             if (favoritesListener != null) {
                 FirebaseDatabase.getInstance().getReference("users").child(userId).child("favorites")
                         .removeEventListener(favoritesListener);
             }
 
-            // Создаем новый слушатель
             favoritesListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         for (DataSnapshot favoriteSnapshot : snapshot.getChildren()) {
                             if (favoriteSnapshot.getKey().equals(String.valueOf(product.getProductId()))) {
-                                favoriteButton.setImageResource(R.drawable.fill_heart_icon); // Если в избранном, иконка заполнена
+                                favoriteButton.setImageResource(R.drawable.fill_heart_icon);
                                 return;
                             }
                         }
                     }
-                    favoriteButton.setImageResource(R.drawable.heart_icon); // Если не в избранном, иконка пустая
+                    favoriteButton.setImageResource(R.drawable.heart_icon);
                 }
 
                 @Override
@@ -182,12 +220,10 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
                 }
             };
 
-            // Запускаем новый слушатель
             FirebaseDatabase.getInstance().getReference("users").child(userId).child("favorites")
                     .addValueEventListener(favoritesListener);
         }
 
-        // Метод для обновления состояния иконки "избранное" при инициализации
+
     }
 }
-

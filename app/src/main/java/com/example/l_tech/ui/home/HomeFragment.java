@@ -17,6 +17,8 @@ import com.example.l_tech.Model.ProductBlockType;
 import com.example.l_tech.R;
 import com.example.l_tech.Repozitory.UserDataListener;
 import com.example.l_tech.retofit2_API.RetrofitClient;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,9 +34,10 @@ public class HomeFragment extends Fragment {
     private static final String TAG = "HomeFragment";  // Тэг для логирования
 
     private RecyclerView recyclerView;
+    private FirebaseAuth auth;
     private HomeAdapter homeAdapter;
     private List<ProductBlock> blocks = new ArrayList<>();
-    String userId = "testUser123"; // Или FirebaseAuth.getInstance().getCurrentUser().getUid();
+         String userId ;
     private UserDataListener.DataChangeCallback callback;
     private UserDataListener userDataListener;
 
@@ -54,6 +57,14 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         recyclerView = view.findViewById(R.id.containerLayout);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            userId = user.getUid();  // Получаем уникальный ID пользователя
+        } else {
+            userId = "guest";
+        }
+
 
         // Создаем callback
         callback = new UserDataListener.DataChangeCallback() {

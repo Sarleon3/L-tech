@@ -17,6 +17,8 @@ import com.example.l_tech.R;
 import com.example.l_tech.Repozitory.UserDataListener;
 import com.example.l_tech.retofit2_API.ProductApi;
 import com.example.l_tech.retofit2_API.RetrofitClient;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -33,24 +35,27 @@ public class favorite extends Fragment {
 
     private RecyclerView recyclerViewFavorites;
     private ProductWithCartAdapter adapter;
+    private FirebaseAuth auth;
     private List<Product> favoriteProducts = new ArrayList<>();
-    private String userId;
-
     public favorite() {
         // Required empty public constructor
     }
-
+    String userId ;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_favorite, container, false);
-
         recyclerViewFavorites = view.findViewById(R.id.recyclerViewFavorites);
         recyclerViewFavorites.setLayoutManager(new GridLayoutManager(getContext(), 2)); // 2-column grid
 
-        userId = "testUser123"; // Get the userId from the session or auth.
-
+        auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            userId = user.getUid();  // Получаем уникальный ID пользователя
+        } else {
+            userId = "guest";
+        }
         // Get the list of favorite products from Firebase
         loadFavoriteProducts();
 

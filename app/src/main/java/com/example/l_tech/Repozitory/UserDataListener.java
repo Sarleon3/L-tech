@@ -58,7 +58,6 @@ public abstract class UserDataListener {
         userRef.addValueEventListener(valueEventListener);
     }
 
-
     // ---- ОБРАБОТКА ИЗМЕНЕНИЙ ---- //
     private void handleCartUpdate(DataSnapshot cartSnapshot) {
         String cartData = cartSnapshot.getValue().toString();
@@ -114,6 +113,7 @@ public abstract class UserDataListener {
         userRef.child("cart").child(productId).removeValue();
     }
 
+    // Проверить, добавлен ли товар в избранное
     public abstract void isFavorite(String productId, Callback callback);
 
     // Добавить в избранное
@@ -146,6 +146,7 @@ public abstract class UserDataListener {
         reviewRef.setValue(review);
     }
 
+    // Проверить, есть ли товар в избранном
     public void isFavorite(String productId, DataCheckCallback callback) {
         userRef.child("favorites").child(productId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
