@@ -8,6 +8,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ProductApi {
 
@@ -15,5 +16,6 @@ public interface ProductApi {
     @GET("api/products/category/{typeName}")
     Call<List<Product>> getProductsByCategory(@Path("typeName") String typeName);
 
-
+    @GET("api/products/batch")
+    Call<List<Product>> getProductsByIds(@Query("ids") String ids);
 }

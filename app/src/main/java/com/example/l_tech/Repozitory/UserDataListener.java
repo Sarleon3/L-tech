@@ -6,7 +6,10 @@ import com.google.firebase.database.*;
 
 import java.util.HashMap;
 import java.util.Map;
-public class UserDataListener {
+
+import retrofit2.Callback;
+
+public abstract class UserDataListener {
     private final DatabaseReference userRef;
     private final DataChangeCallback callback;
     private final ValueEventListener valueEventListener;
@@ -110,6 +113,8 @@ public class UserDataListener {
     public void removeFromCart(String productId) {
         userRef.child("cart").child(productId).removeValue();
     }
+
+    public abstract void isFavorite(String productId, Callback callback);
 
     // Добавить в избранное
     public void addToFavorites(String productId) {

@@ -78,7 +78,12 @@ public class HomeFragment extends Fragment {
                 // Логика обновления отзывов
             }
         };
-        userDataListener = new UserDataListener(userId, callback);
+        userDataListener = new UserDataListener(userId, callback) {
+            @Override
+            public void isFavorite(String productId, Callback callback) {
+
+            }
+        };
 
         loadProducts(); // Загружаем продукты
         return view;

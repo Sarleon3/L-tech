@@ -125,6 +125,7 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
                     }
                     // Обновляем UI
                     notifyItemChanged(getAdapterPosition()); // Перерисовываем элемент
+
                 });
             });
 
