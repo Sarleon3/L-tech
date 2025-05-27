@@ -106,7 +106,6 @@ public class HomeFragment extends Fragment {
     }
 
 
-
     private void loadProducts() {
         AtomicInteger completedRequests = new AtomicInteger(0);
         Log.d(TAG, "loadProducts: Начинаем загрузку продуктов. Всего категорий: " + categoryBlocks.size());
@@ -132,7 +131,7 @@ public class HomeFragment extends Fragment {
                                         Log.d(TAG, "Товар: ID=" + product.getProductId() +
                                                 ", Name=" + product.getProductName() +
                                                 ", Price=" + product.getPrice() +
-                                                ", Image=" + product.getImage());
+                                                ", Images=" + product.getImage());
                                     }
 
                                     blocks.add(new ProductBlock(type, category, sublist));

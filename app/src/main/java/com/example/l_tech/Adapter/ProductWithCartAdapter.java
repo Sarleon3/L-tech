@@ -1,5 +1,6 @@
 package com.example.l_tech.Adapter;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.l_tech.Model.Product;
+import com.example.l_tech.Product_veiw;
 import com.example.l_tech.R;
 import com.example.l_tech.Repozitory.UserDataListener;
 import com.google.firebase.database.DataSnapshot;
@@ -28,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCartAdapter.ViewHolder> {
@@ -94,6 +97,15 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
             cartQuantity = itemView.findViewById(R.id.cartQuantity);
             incrementButton = itemView.findViewById(R.id.incrementButton);
             decrementButton = itemView.findViewById(R.id.decrementButton);
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    Product product = products.get(position);
+                    Intent intent = new Intent(itemView.getContext(), Product_veiw.class);
+                    intent.putExtra("product", product);
+                    itemView.getContext().startActivity(intent);
+                }
+            });
         }
 
         public void bind(Product product) {
@@ -103,9 +115,15 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
             productRating.setText(String.valueOf(product.getRating()));
 
             // Загружаем изображение
-            Glide.with(itemView.getContext())
-                    .load(product.getImage())
-                    .into(productImage);
+            if (product.getImages() != null && !product.getImages().isEmpty()) {
+                Glide.with(itemView.getContext())
+                        .load(product.getImages().get(0))
+                        .placeholder(R.drawable.pic2)
+                        .error(R.drawable.pic2)
+                        .into(productImage);
+            } else {
+                productImage.setImageResource(R.drawable.pic2);
+            }
 
             // Инициализация состояния кнопки "избранное"
             setupFavoritesListener(product);

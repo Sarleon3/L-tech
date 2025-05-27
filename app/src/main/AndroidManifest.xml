@@ -17,6 +17,9 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".Product_veiw"
+            android:exported="false" />
+        <activity
             android:name=".registrat"
             android:exported="false" />
         <activity

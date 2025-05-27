@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.l_tech.Model.CartItem;
 import com.example.l_tech.Model.Product;
+import com.example.l_tech.R;
 import com.example.l_tech.databinding.ItemCartBinding;
 import com.example.l_tech.Repozitory.UserDataListener;
 import com.example.l_tech.retofit2_API.ProductApi;
@@ -68,9 +69,15 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                                 holder.binding.cartProductName.setText(product.getProductName());
                                 holder.binding.cartProductPrice.setText(product.getPrice() + " ₽");
 
-                                Glide.with(holder.binding.cartProductImage.getContext())
-                                        .load(product.getImage())
-                                        .into(holder.binding.cartProductImage);
+                                if (product.getImages() != null && !product.getImages().isEmpty()) {
+                                    Glide.with(holder.binding.cartProductImage.getContext())
+                                            .load(product.getImages().get(0))
+                                            .placeholder(R.drawable.pic1)
+                                            .error(R.drawable.pic1)
+                                            .into(holder.binding.cartProductImage);
+                                } else {
+                                    holder.binding.cartProductImage.setImageResource(R.drawable.pic1);
+                                }
                             }
                         } catch (NumberFormatException e) {
                             Log.e("CartAdapter", "Error parsing product ID: " + e.getMessage());
