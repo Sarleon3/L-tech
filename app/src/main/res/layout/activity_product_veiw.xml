@@ -191,40 +191,10 @@
                     android:visibility="gone">
 
                     <GridLayout
+                        android:id="@+id/specsGridLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:columnCount="2" >
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Размеры:" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="71.5 x 146.7 x 7.65 мм" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Аккумулятор:" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Li-Ion, несъёмный" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Процессор:" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Apple A15 Bionic" />
-                    </GridLayout>
+                        android:columnCount="2" />
 
                     <TextView
                         android:id="@+id/tvAllSpecs"
