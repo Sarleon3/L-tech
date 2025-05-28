@@ -142,7 +142,8 @@
                 <FrameLayout
                     android:id="@+id/contentContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" >
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="200dp">
 
                     <LinearLayout
                         android:id="@+id/infoDescription"
