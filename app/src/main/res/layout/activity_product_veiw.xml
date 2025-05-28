@@ -8,7 +8,7 @@
     android:background="@color/white"
     tools:context=".Product_veiw">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline_bottom_button"
@@ -16,199 +16,189 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_image_bottom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.4" />
-
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPager2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="@id/guideline_image_bottom"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="vertical"
-            android:padding="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/guideline_image_bottom">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/productNameText"
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPager2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginBottom="4dp"
-                tools:text="Samsung Galaxy A06 4/64GB SM-A065FZKDCАU Черный" />
-
-            <TextView
-                android:id="@+id/productCodeText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginBottom="8dp"
-                tools:text="ID 141592653" />
+                android:layout_height="300dp"
+                android:layout_marginBottom="16dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/_849817_favorite_star_favorites_favourite_multimedia_icon"/>
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
 
                 <TextView
-                    android:id="@+id/productRatingText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:layout_marginStart="4dp"
-                    tools:text="4.5" />
-
-                <TextView
-                    android:id="@+id/productReviewsText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/holo_blue_dark"
-                    android:layout_marginStart="8dp"
-                    tools:text="29 отзывов" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:id="@+id/productPriceText"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/productNameText"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="@color/black"
-                    tools:text="8 990 ₽" />
+                    android:layout_marginBottom="4dp"
+                    tools:text="Samsung Galaxy A06 4/64GB SM-A065FZKDCАU Черный" />
+
+                <TextView
+                    android:id="@+id/productCodeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_marginBottom="8dp"
+                    tools:text="ID 141592653" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/_849817_favorite_star_favorites_favourite_multimedia_icon"/>
+
+                    <TextView
+                        android:id="@+id/productRatingText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:layout_marginStart="4dp"
+                        tools:text="4.5" />
+
+                    <TextView
+                        android:id="@+id/productReviewsText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/holo_blue_dark"
+                        android:layout_marginStart="8dp"
+                        tools:text="29 отзывов" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:id="@+id/productPriceText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        tools:text="8 990 ₽" />
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/tabContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/btnDescription"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Описание"
+                            android:textStyle="bold"
+                            android:padding="8dp"/>
+
+                        <TextView
+                            android:id="@+id/btnSpecs"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Характеристики"
+                            android:textStyle="bold"
+                            android:padding="8dp"/>
+
+                        <TextView
+                            android:id="@+id/btnAccessories"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Отзывы"
+                            android:textStyle="bold"
+                            android:padding="8dp"/>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <FrameLayout
+                    android:id="@+id/contentContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" >
+
+                    <LinearLayout
+                        android:id="@+id/infoDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/tvDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="16sp"
+                            android:textColor="@color/black"
+                            android:lineSpacingExtra="4dp"
+                            tools:text="Описание товара..." />
+
+                        <TextView
+                            android:id="@+id/tvReadMore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="Читать полностью"
+                            android:textColor="@android:color/holo_blue_dark"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/infoSpecs"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <GridLayout
+                            android:id="@+id/specsGridLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:columnCount="2" />
+
+                        <TextView
+                            android:id="@+id/tvAllSpecs"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="Все характеристики"
+                            android:textColor="@android:color/holo_blue_dark"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+                </FrameLayout>
             </LinearLayout>
 
-            <!-- Горизонтальный скролл для заголовков -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <LinearLayout
-                    android:id="@+id/tabContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/btnDescription"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Описание"
-                        android:textStyle="bold"
-                        android:padding="8dp"/>
-
-                    <TextView
-                        android:id="@+id/btnSpecs"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Характеристики"
-                        android:textStyle="bold"
-                        android:padding="8dp"/>
-
-                    <TextView
-                        android:id="@+id/btnAccessories"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Отзывы"
-                        android:textStyle="bold"
-                        android:padding="8dp"/>
-
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- Контейнер для информации -->
-            <FrameLayout
-                android:id="@+id/contentContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
-
-                <!-- Описание -->
-                <LinearLayout
-                    android:id="@+id/infoDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="visible">
-
-                    <TextView
-                        android:id="@+id/tvDescription"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:textColor="@color/black"
-                        android:lineSpacingExtra="4dp"
-                        tools:text="Описание товара..." />
-
-                    <TextView
-                        android:id="@+id/tvReadMore"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="Читать полностью"
-                        android:textColor="@android:color/holo_blue_dark"
-                        android:layout_marginTop="8dp" />
-                </LinearLayout>
-
-                <!-- Характеристики -->
-                <LinearLayout
-                    android:id="@+id/infoSpecs"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone">
-
-                    <GridLayout
-                        android:id="@+id/specsGridLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:columnCount="2" />
-
-                    <TextView
-                        android:id="@+id/tvAllSpecs"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:text="Все характеристики"
-                        android:textColor="@android:color/holo_blue_dark"
-                        android:layout_marginTop="8dp" />
-                </LinearLayout>
-            </FrameLayout>
         </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_bottom_button"
