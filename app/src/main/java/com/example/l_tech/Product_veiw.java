@@ -38,6 +38,7 @@ public class Product_veiw extends AppCompatActivity {
     private Product currentProduct; // Store the product object
     private List<AttributeValue> allAttributes; // Store all fetched attributes
     private boolean isSpecsExpanded = false; // Track specs expansion state
+    private boolean isDescriptionExpanded = false; // Track description expansion state
 
     private ProductImageAdapter imageAdapter;
 
@@ -87,13 +88,16 @@ public class Product_veiw extends AppCompatActivity {
                 productReviewsText.setText("29 отзывов"); // Example value
                 totalPriceText.setText(String.format("%.2f ₽", currentProduct.getPrice())); // Example: total price is just the product price
 
-                // Handle Description Text and Read More button
+                // Handle initial Description Text and Read More button state
                 if (fullDescription != null && fullDescription.length() > 200) {
                     productDescriptionText.setText(fullDescription.substring(0, 200) + "...");
                     tvReadMore.setVisibility(View.VISIBLE);
+                    tvReadMore.setText("Читать полностью");
+                    isDescriptionExpanded = false;
                 } else {
                     productDescriptionText.setText(fullDescription);
                     tvReadMore.setVisibility(View.GONE);
+                    isDescriptionExpanded = true; // No need to expand if already full
                 }
 
                 // Setup ViewPager2 with images
@@ -124,8 +128,16 @@ public class Product_veiw extends AppCompatActivity {
 
         // Set up click listener for Read More button
         tvReadMore.setOnClickListener(v -> {
-            productDescriptionText.setText(fullDescription);
-            tvReadMore.setVisibility(View.GONE);
+            if (isDescriptionExpanded) {
+                // Collapse description
+                productDescriptionText.setText(fullDescription != null && fullDescription.length() > 200 ? fullDescription.substring(0, 200) + "..." : fullDescription);
+                tvReadMore.setText("Читать полностью");
+            } else {
+                // Expand description
+                productDescriptionText.setText(fullDescription);
+                tvReadMore.setText("Скрыть описание");
+            }
+            isDescriptionExpanded = !isDescriptionExpanded; // Toggle state
         });
 
         // Set up click listener for All Specs button
