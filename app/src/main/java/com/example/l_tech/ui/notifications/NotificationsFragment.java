@@ -138,7 +138,32 @@ public class NotificationsFragment extends Fragment {
     }
 
     private void proceedToCheckout() {
-        // Реализация оформления заказа
+        // Проверяем, есть ли выбранные товары
+        boolean hasSelectedItems = false;
+        for (CartItem item : cartItems) {
+            if (item.isSelected()) {
+                hasSelectedItems = true;
+                break;
+            }
+        }
+
+        if (!hasSelectedItems) {
+            Toast.makeText(getContext(), "Выберите товары для оформления заказа", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Удаляем выбранные товары из корзины
+        for (CartItem item : cartItems) {
+            if (item.isSelected()) {
+                userDataListener.removeFromCart(item.getProductId());
+            }
+        }
+
+        // Показываем сообщение об успешном оформлении
+        Toast.makeText(getContext(), "Заказ успешно оформлен!", Toast.LENGTH_SHORT).show();
+
+        // Обновляем общую сумму
+        updateTotalPrice(0.0);
     }
 
     public void updateTotalPrice(double price) {

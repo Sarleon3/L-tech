@@ -1,5 +1,6 @@
 package com.example.l_tech.Adapter;
 
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.l_tech.Model.CartItem;
 import com.example.l_tech.Model.Product;
+import com.example.l_tech.Product_veiw;
 import com.example.l_tech.R;
 import com.example.l_tech.databinding.ItemCartBinding;
 import com.example.l_tech.Repozitory.UserDataListener;
@@ -78,6 +80,13 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                                 } else {
                                     holder.binding.cartProductImage.setImageResource(R.drawable.pic1);
                                 }
+
+                                // Add click listener for the entire item view
+                                holder.itemView.setOnClickListener(v -> {
+                                    Intent intent = new Intent(v.getContext(), Product_veiw.class);
+                                    intent.putExtra("product", product);
+                                    v.getContext().startActivity(intent);
+                                });
                             }
                         } catch (NumberFormatException e) {
                             Log.e("CartAdapter", "Error parsing product ID: " + e.getMessage());
