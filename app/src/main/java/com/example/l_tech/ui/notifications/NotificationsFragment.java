@@ -1,13 +1,19 @@
 package com.example.l_tech.ui.notifications;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.example.l_tech.R;
 import com.example.l_tech.databinding.FragmentNotificationsBinding;
 import com.example.l_tech.Model.CartItem;
 import com.example.l_tech.Repozitory.UserDataListener;
@@ -15,6 +21,7 @@ import com.example.l_tech.Adapter.CartAdapter;
 import com.example.l_tech.retofit2_API.ProductApi;
 import com.example.l_tech.retofit2_API.RetrofitClient;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -32,14 +39,41 @@ public class NotificationsFragment extends Fragment {
     private UserDataListener userDataListener;
     private double totalPrice = 0.0;
     private ProductApi apiService;
+    private FirebaseAuth auth;
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                            ViewGroup container, Bundle savedInstanceState) {
+        NotificationsViewModel notificationsViewModel =
+                new ViewModelProvider(this).get(NotificationsViewModel.class);
+
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
+        
+        // Устанавливаем LayoutManager для RecyclerView
         binding.cartRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Получаем текущего пользователя
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        // Инициализация FirebaseAuth
+        auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+
+        // Проверка авторизации
+        if (user == null) {
+            // Если пользователь не авторизован, показываем сообщение и переходим на дашборд
+            Toast.makeText(getContext(), "Для доступа к корзине необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+            
+            // Переключаемся на вкладку дашборда
+            if (getActivity() != null) {
+                com.google.android.material.bottomnavigation.BottomNavigationView navView = 
+                    getActivity().findViewById(R.id.nav_view);
+                if (navView != null) {
+                    navView.setSelectedItemId(R.id.navigation_dashboard);
+                }
+            }
+            return root;
+        }
+
+        // Если пользователь авторизован, продолжаем загрузку корзины
+        String userId = user.getUid();
         userDataListener = new UserDataListener(userId, new UserDataListener.DataChangeCallback() {
             @Override
             public void onCartUpdated(String cartData) {
@@ -60,7 +94,6 @@ public class NotificationsFragment extends Fragment {
         }) {
             @Override
             public void isFavorite(String productId, Callback callback) {
-
             }
         };
 
@@ -73,7 +106,7 @@ public class NotificationsFragment extends Fragment {
 
         binding.checkoutButton.setOnClickListener(v -> proceedToCheckout());
 
-        return binding.getRoot();
+        return root;
     }
 
     private void updateCart(String cartData) {
@@ -116,7 +149,9 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        userDataListener.stopListening();
+        if (userDataListener != null) {
+            userDataListener.stopListening();
+        }
         binding = null;
     }
 }

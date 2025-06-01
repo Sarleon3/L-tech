@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.example.l_tech.login;
+import com.example.l_tech.SettingsActivity;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -48,6 +49,12 @@ public class DashboardFragment extends Fragment {
             i();
         });
 
+        // Добавляем обработчик нажатия на иконку настроек
+        ImageView settingsIcon = root.findViewById(R.id.settings_icon);
+        settingsIcon.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), SettingsActivity.class);
+            startActivity(intent);
+        });
 
         return root;
     }
@@ -65,10 +72,8 @@ public class DashboardFragment extends Fragment {
         TextView w = binding.getRoot().findViewById(R.id.textView5);
         TextView q = binding.getRoot().findViewById(R.id.textView6);
         log = binding.getRoot().findViewById(R.id.button7);
-
-        TextView userName = binding.getRoot().findViewById(R.id.user_name);
+        
         TextView userEmail = binding.getRoot().findViewById(R.id.user_email);
-        TextView userNumber = binding.getRoot().findViewById(R.id.user_number);
 
         log.setVisibility(View.GONE);
         w.setVisibility(View.GONE);

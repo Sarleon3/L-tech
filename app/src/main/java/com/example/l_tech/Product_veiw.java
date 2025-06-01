@@ -6,6 +6,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.GridLayout;
+import android.widget.ImageButton;
+import android.widget.Button;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -16,8 +19,16 @@ import com.example.l_tech.Adapter.ProductImageAdapter;
 import com.example.l_tech.Model.Product;
 import com.example.l_tech.Model.AttributeValue;
 import com.example.l_tech.Model.AttributeType;
+import com.example.l_tech.Repozitory.UserDataListener;
 import com.example.l_tech.retofit2_API.ProductApi;
 import com.example.l_tech.retofit2_API.RetrofitClient;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -33,20 +44,65 @@ public class Product_veiw extends AppCompatActivity {
     private LinearLayout infoDescription;
     private LinearLayout infoSpecs;
     private GridLayout specsGridLayout;
+    private ImageButton favoriteButton;
+    private Button addToCartButton;
+    private LinearLayout cartQuantityLayout;
+    private TextView cartQuantity;
+    private ImageButton incrementButton;
+    private ImageButton decrementButton;
 
     private String fullDescription;
-    private Product currentProduct; // Store the product object
-    private List<AttributeValue> allAttributes; // Store all fetched attributes
-    private boolean isSpecsExpanded = false; // Track specs expansion state
-    private boolean isDescriptionExpanded = false; // Track description expansion state
-
+    private Product currentProduct;
+    private List<AttributeValue> allAttributes;
+    private boolean isSpecsExpanded = false;
+    private boolean isDescriptionExpanded = false;
     private ProductImageAdapter imageAdapter;
+    private FirebaseAuth auth;
+    private String userId;
+    private UserDataListener userDataListener;
+    private ValueEventListener favoritesListener, cartListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_product_veiw);
+
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null) {
+            userId = user.getUid();
+        } else {
+            userId = "guest";
+        }
+
+        // Initialize UserDataListener
+        userDataListener = new UserDataListener(userId, new UserDataListener.DataChangeCallback() {
+            @Override
+            public void onCartUpdated(String cartData) {
+                // Handle cart updates
+            }
+
+            @Override
+            public void onFavoritesUpdated(String favoriteId) {
+                // Handle favorites updates
+            }
+
+            @Override
+            public void onOrdersUpdated(String ordersData) {
+                // Handle orders updates
+            }
+
+            @Override
+            public void onReviewsUpdated(String reviewsData) {
+                // Handle reviews updates
+            }
+        }) {
+            @Override
+            public void isFavorite(String productId, Callback callback) {
+            }
+        };
 
         // Initialize views
         viewPager2 = findViewById(R.id.viewPager2);
@@ -59,92 +115,219 @@ public class Product_veiw extends AppCompatActivity {
         tvReadMore = findViewById(R.id.tvReadMore);
         tvAllSpecs = findViewById(R.id.tvAllSpecs);
         totalPriceText = findViewById(R.id.totalPriceText);
-
+        favoriteButton = findViewById(R.id.favoriteButton);
+        addToCartButton = findViewById(R.id.addToCartButton);
+        cartQuantityLayout = findViewById(R.id.cartQuantityLayout);
+        cartQuantity = findViewById(R.id.cartQuantity);
+        incrementButton = findViewById(R.id.incrementButton);
+        decrementButton = findViewById(R.id.decrementButton);
         btnDescription = findViewById(R.id.btnDescription);
         btnSpecs = findViewById(R.id.btnSpecs);
         btnReviews = findViewById(R.id.btnAccessories);
-
         infoDescription = findViewById(R.id.infoDescription);
         infoSpecs = findViewById(R.id.infoSpecs);
-        specsGridLayout = infoSpecs.findViewById(R.id.specsGridLayout);
+        specsGridLayout = findViewById(R.id.specsGridLayout);
 
-        // Set initial visibility
-        infoDescription.setVisibility(View.VISIBLE);
-        infoSpecs.setVisibility(View.GONE);
-        tvAllSpecs.setVisibility(View.GONE); // Hide initially
+        // Set initial visibility with null checks
+        if (infoDescription != null) {
+            infoDescription.setVisibility(View.VISIBLE);
+        }
+        if (infoSpecs != null) {
+            infoSpecs.setVisibility(View.GONE);
+        }
+        if (tvAllSpecs != null) {
+            tvAllSpecs.setVisibility(View.GONE);
+        }
 
         // Get data from intent
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            currentProduct = extras.getParcelable("product"); // Store in class variable
+            currentProduct = extras.getParcelable("product");
             if (currentProduct != null) {
                 // Set product information
-                productNameText.setText(currentProduct.getProductName());
-                productPriceText.setText(String.format("%.2f ₽", currentProduct.getPrice()));
-                fullDescription = currentProduct.getDescription(); // Store full description
-                productCodeText.setText("ID " + currentProduct.getProductId());
-                // You would typically get rating and reviews from your data source
-                productRatingText.setText(String.valueOf(currentProduct.getRating()));
-                productReviewsText.setText("29 отзывов"); // Example value
-                totalPriceText.setText(String.format("%.2f ₽", currentProduct.getPrice())); // Example: total price is just the product price
+                if (productNameText != null) {
+                    productNameText.setText(currentProduct.getProductName());
+                }
+                if (productPriceText != null) {
+                    productPriceText.setText(String.format("%.2f ₽", currentProduct.getPrice()));
+                }
+                fullDescription = currentProduct.getDescription();
+                if (productCodeText != null) {
+                    productCodeText.setText("ID " + currentProduct.getProductId());
+                }
+                if (productRatingText != null) {
+                    productRatingText.setText(String.valueOf(currentProduct.getRating()));
+                }
+                if (productReviewsText != null) {
+                    productReviewsText.setText(" отзывов");
+                }
+                if (totalPriceText != null) {
+                    totalPriceText.setText(String.format("%.2f ₽", currentProduct.getPrice()));
+                }
 
                 // Handle initial Description Text and Read More button state
-                if (fullDescription != null && fullDescription.length() > 200) {
-                    productDescriptionText.setText(fullDescription.substring(0, 200) + "...");
-                    tvReadMore.setVisibility(View.VISIBLE);
-                    tvReadMore.setText("Читать полностью");
-                    isDescriptionExpanded = false;
-                } else {
-                    productDescriptionText.setText(fullDescription);
-                    tvReadMore.setVisibility(View.GONE);
-                    isDescriptionExpanded = true; // No need to expand if already full
+                if (productDescriptionText != null && fullDescription != null) {
+                    if (fullDescription.length() > 200) {
+                        productDescriptionText.setText(fullDescription.substring(0, 200) + "...");
+                        if (tvReadMore != null) {
+                            tvReadMore.setVisibility(View.VISIBLE);
+                            tvReadMore.setText("Читать полностью");
+                        }
+                        isDescriptionExpanded = false;
+                    } else {
+                        productDescriptionText.setText(fullDescription);
+                        if (tvReadMore != null) {
+                            tvReadMore.setVisibility(View.GONE);
+                        }
+                        isDescriptionExpanded = true;
+                    }
                 }
 
                 // Setup ViewPager2 with images
-                if (currentProduct.getImages() != null && !currentProduct.getImages().isEmpty()) {
-                    imageAdapter = new ProductImageAdapter(currentProduct.getImages());
-                    viewPager2.setAdapter(imageAdapter);
-                } else if (currentProduct.getImage() != null && !currentProduct.getImage().isEmpty()){
-                    // Fallback for single image if images array is empty/null
-                    List<String> singleImageList = new ArrayList<>();
-                    singleImageList.add(currentProduct.getImage());
-                    imageAdapter = new ProductImageAdapter(singleImageList);
-                    viewPager2.setAdapter(imageAdapter);
+                if (viewPager2 != null) {
+                    if (currentProduct.getImages() != null && !currentProduct.getImages().isEmpty()) {
+                        imageAdapter = new ProductImageAdapter(currentProduct.getImages());
+                        viewPager2.setAdapter(imageAdapter);
+                    } else if (currentProduct.getImage() != null && !currentProduct.getImage().isEmpty()) {
+                        List<String> singleImageList = new ArrayList<>();
+                        singleImageList.add(currentProduct.getImage());
+                        imageAdapter = new ProductImageAdapter(singleImageList);
+                        viewPager2.setAdapter(imageAdapter);
+                    }
                 }
+
+                // Set up initial favorite state
+                setupFavoritesListener();
+                // Set up initial cart state
+                setupCartListener();
             }
         }
 
         // Set up click listeners for tabs
-        btnDescription.setOnClickListener(v -> showSection(infoDescription));
-        btnSpecs.setOnClickListener(v -> {
-            showSection(infoSpecs);
-            if (allAttributes == null) { // Fetch only if not already fetched
-                fetchAndDisplayAttributes();
-            } else {
-                updateSpecsDisplay(); // Just update display if already fetched
-            }
-        });
-        btnReviews.setOnClickListener(v -> { /* TODO: Implement Reviews Section */ });
+        if (btnDescription != null && infoDescription != null) {
+            btnDescription.setOnClickListener(v -> showSection(infoDescription));
+        }
+        if (btnSpecs != null && infoSpecs != null) {
+            btnSpecs.setOnClickListener(v -> {
+                showSection(infoSpecs);
+                if (allAttributes == null) {
+                    fetchAndDisplayAttributes();
+                } else {
+                    updateSpecsDisplay();
+                }
+            });
+        }
+        if (btnReviews != null) {
+            btnReviews.setOnClickListener(v -> { /* TODO: Implement Reviews Section */ });
+        }
 
         // Set up click listener for Read More button
-        tvReadMore.setOnClickListener(v -> {
-            if (isDescriptionExpanded) {
-                // Collapse description
-                productDescriptionText.setText(fullDescription != null && fullDescription.length() > 200 ? fullDescription.substring(0, 200) + "..." : fullDescription);
-                tvReadMore.setText("Читать полностью");
-            } else {
-                // Expand description
-                productDescriptionText.setText(fullDescription);
-                tvReadMore.setText("Скрыть описание");
-            }
-            isDescriptionExpanded = !isDescriptionExpanded; // Toggle state
-        });
+        if (tvReadMore != null && productDescriptionText != null) {
+            tvReadMore.setOnClickListener(v -> {
+                if (isDescriptionExpanded) {
+                    productDescriptionText.setText(fullDescription != null && fullDescription.length() > 200 ? 
+                        fullDescription.substring(0, 200) + "..." : fullDescription);
+                    tvReadMore.setText("Читать полностью");
+                } else {
+                    productDescriptionText.setText(fullDescription);
+                    tvReadMore.setText("Скрыть описание");
+                }
+                isDescriptionExpanded = !isDescriptionExpanded;
+            });
+        }
 
         // Set up click listener for All Specs button
-        tvAllSpecs.setOnClickListener(v -> {
-            isSpecsExpanded = !isSpecsExpanded; // Toggle state
-            updateSpecsDisplay(); // Update display based on new state
-        });
+        if (tvAllSpecs != null) {
+            tvAllSpecs.setOnClickListener(v -> {
+                isSpecsExpanded = !isSpecsExpanded;
+                updateSpecsDisplay();
+            });
+        }
+
+        // Set up favorite button click listener
+        if (favoriteButton != null) {
+            favoriteButton.setOnClickListener(v -> {
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(this, "Для добавления в избранное необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    userDataListener.isFavorite(String.valueOf(currentProduct.getProductId()), isFavorite -> {
+                        if (isFavorite) {
+                            userDataListener.removeFromFavorites(String.valueOf(currentProduct.getProductId()));
+                            favoriteButton.setImageResource(R.drawable.heart_icon);
+                        } else {
+                            userDataListener.addToFavorites(String.valueOf(currentProduct.getProductId()));
+                            favoriteButton.setImageResource(R.drawable.fill_heart_icon);
+                        }
+                    });
+                } catch (Exception e) {
+                    Toast.makeText(this, "Ошибка при работе с избранным", Toast.LENGTH_SHORT).show();
+                    Log.e("Favorites", "Error: " + e.getMessage());
+                }
+            });
+        }
+
+        // Set up cart button click listener
+        if (addToCartButton != null && cartQuantityLayout != null && cartQuantity != null) {
+            addToCartButton.setOnClickListener(v -> {
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(this, "Для добавления в корзину необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    addToCartButton.setVisibility(View.GONE);
+                    cartQuantityLayout.setVisibility(View.VISIBLE);
+                    cartQuantity.setText("1");
+                    userDataListener.addToCart(String.valueOf(currentProduct.getProductId()), 1, currentProduct.getPrice());
+                } catch (Exception e) {
+                    Toast.makeText(this, "Ошибка при добавлении в корзину", Toast.LENGTH_SHORT).show();
+                    Log.e("Cart", "Error: " + e.getMessage());
+                }
+            });
+        }
+
+        // Set up increment button click listener
+        if (incrementButton != null && cartQuantity != null) {
+            incrementButton.setOnClickListener(v -> {
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(this, "Для изменения количества необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    int count = Integer.parseInt(cartQuantity.getText().toString());
+                    cartQuantity.setText(String.valueOf(count + 1));
+                    userDataListener.addToCart(String.valueOf(currentProduct.getProductId()), count + 1, currentProduct.getPrice());
+                } catch (Exception e) {
+                    Toast.makeText(this, "Ошибка при изменении количества", Toast.LENGTH_SHORT).show();
+                    Log.e("Cart", "Error: " + e.getMessage());
+                }
+            });
+        }
+
+        // Set up decrement button click listener
+        if (decrementButton != null && cartQuantity != null && cartQuantityLayout != null) {
+            decrementButton.setOnClickListener(v -> {
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(this, "Для изменения количества необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    int count = Integer.parseInt(cartQuantity.getText().toString());
+                    if (count > 1) {
+                        cartQuantity.setText(String.valueOf(count - 1));
+                        userDataListener.addToCart(String.valueOf(currentProduct.getProductId()), count - 1, currentProduct.getPrice());
+                    } else {
+                        cartQuantityLayout.setVisibility(View.GONE);
+                        addToCartButton.setVisibility(View.VISIBLE);
+                        userDataListener.removeFromCart(String.valueOf(currentProduct.getProductId()));
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(this, "Ошибка при изменении количества", Toast.LENGTH_SHORT).show();
+                    Log.e("Cart", "Error: " + e.getMessage());
+                }
+            });
+        }
 
         // Handle system insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -155,11 +338,15 @@ public class Product_veiw extends AppCompatActivity {
     }
 
     private void showSection(View sectionToShow) {
-        infoDescription.setVisibility(View.GONE);
-        infoSpecs.setVisibility(View.GONE);
-        // TODO: Add other sections here (e.g., infoReviews)
-
-        sectionToShow.setVisibility(View.VISIBLE);
+        if (infoDescription != null) {
+            infoDescription.setVisibility(View.GONE);
+        }
+        if (infoSpecs != null) {
+            infoSpecs.setVisibility(View.GONE);
+        }
+        if (sectionToShow != null) {
+            sectionToShow.setVisibility(View.VISIBLE);
+        }
     }
 
     private void fetchAndDisplayAttributes() {
@@ -247,5 +434,86 @@ public class Product_veiw extends AppCompatActivity {
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
         params.setMargins(0, 8, 0, 8); // Add some vertical margin
         return params;
+    }
+
+    private void setupFavoritesListener() {
+        if (favoritesListener != null) {
+            FirebaseDatabase.getInstance().getReference("users").child(userId).child("favorites")
+                    .removeEventListener(favoritesListener);
+        }
+
+        favoritesListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot favoriteSnapshot : snapshot.getChildren()) {
+                        if (favoriteSnapshot.getKey().equals(String.valueOf(currentProduct.getProductId()))) {
+                            favoriteButton.setImageResource(R.drawable.fill_heart_icon);
+                            return;
+                        }
+                    }
+                }
+                favoriteButton.setImageResource(R.drawable.heart_icon);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.e("FavoritesListener", "Ошибка: " + error.getMessage());
+            }
+        };
+
+        FirebaseDatabase.getInstance().getReference("users").child(userId).child("favorites")
+                .addValueEventListener(favoritesListener);
+    }
+
+    private void setupCartListener() {
+        if (cartListener != null) {
+            FirebaseDatabase.getInstance().getReference("users").child(userId).child("cart")
+                    .removeEventListener(cartListener);
+        }
+
+        cartListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot cartSnapshot : snapshot.getChildren()) {
+                        if (cartSnapshot.getKey().equals(String.valueOf(currentProduct.getProductId()))) {
+                            Long quantityLong = cartSnapshot.child("quantity").getValue(Long.class);
+                            if (quantityLong != null) {
+                                int quantity = quantityLong.intValue();
+                                cartQuantity.setText(String.valueOf(quantity));
+                                cartQuantityLayout.setVisibility(View.VISIBLE);
+                                addToCartButton.setVisibility(View.GONE);
+                            }
+                            return;
+                        }
+                    }
+                }
+                cartQuantityLayout.setVisibility(View.GONE);
+                addToCartButton.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.e("CartListener", "Ошибка при получении данных из корзины: " + error.getMessage());
+            }
+        };
+
+        FirebaseDatabase.getInstance().getReference("users").child(userId).child("cart")
+                .addValueEventListener(cartListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove listeners when activity is destroyed
+        if (favoritesListener != null) {
+            FirebaseDatabase.getInstance().getReference("users").child(userId).child("favorites")
+                    .removeEventListener(favoritesListener);
+        }
+        if (cartListener != null) {
+            FirebaseDatabase.getInstance().getReference("users").child(userId).child("cart")
+                    .removeEventListener(cartListener);
+        }
     }
 }

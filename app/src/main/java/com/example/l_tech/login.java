@@ -21,7 +21,7 @@ public class login extends AppCompatActivity {
 
     private FirebaseAuth auth;
     private EditText etEmail, etPassword;
-    private Button btnLogin;
+    private Button btnLogin, btnRegister;
     private TextView tvForgotPassword;
 
     @Override
@@ -43,10 +43,16 @@ public class login extends AppCompatActivity {
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnLogin = findViewById(R.id.btn_login);
+        btnRegister = findViewById(R.id.Regist);
         tvForgotPassword = findViewById(R.id.tv_forgot_password);
 
         // Обработчик нажатия на кнопку "Войти"
         btnLogin.setOnClickListener(view -> loginUser());
+
+        // Обработчик нажатия на кнопку "Зарегистрироваться"
+        btnRegister.setOnClickListener(view -> {
+            startActivity(new Intent(login.this, registrat.class));
+        });
 
         // Восстановление пароля
         tvForgotPassword.setOnClickListener(view -> {
@@ -86,6 +92,13 @@ public class login extends AppCompatActivity {
 
     // Метод для сброса пароля
     private void resetPassword(String email) {
-
+        auth.sendPasswordResetEmail(email)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(login.this, "Инструкции по сбросу пароля отправлены на email", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(login.this, "Ошибка: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

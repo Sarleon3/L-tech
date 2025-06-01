@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +25,7 @@ import com.example.l_tech.Model.Product;
 import com.example.l_tech.Product_veiw;
 import com.example.l_tech.R;
 import com.example.l_tech.Repozitory.UserDataListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -37,23 +39,25 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
     private final List<Product> products;
     private String userId;
     private final UserDataListener userDataListener;
+    private final FirebaseAuth auth;
 
     public ProductWithCartAdapter(List<Product> products, String userId, UserDataListener userDataListener) {
         this.products = products;
         this.userId = userId;
         this.userDataListener = userDataListener;
+        this.auth = FirebaseAuth.getInstance();
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.product_with_cart_item, parent, false);
-        return new ViewHolder(view, userDataListener); // передаем userDataListener
+        return new ViewHolder(view, userDataListener);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Product product = products.get(position);
-        holder.bind(product); // Привязка данных к элементам
+        holder.bind(product);
     }
 
     @Override
@@ -65,7 +69,7 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
         userDataListener.isFavorite(String.valueOf(productId), isFavorite -> {
             for (int i = 0; i < products.size(); i++) {
                 if (products.get(i).getProductId() == productId) {
-                    notifyItemChanged(i); // Обновляем только нужный элемент
+                    notifyItemChanged(i);
                     break;
                 }
             }
@@ -114,7 +118,6 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
             productPrice.setText(String.format("%.2f ₽", product.getPrice()));
             productRating.setText(String.valueOf(product.getRating()));
 
-            // Загружаем изображение
             if (product.getImages() != null && !product.getImages().isEmpty()) {
                 Glide.with(itemView.getContext())
                         .load(product.getImages().get(0))
@@ -125,55 +128,84 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
                 productImage.setImageResource(R.drawable.pic2);
             }
 
-            // Инициализация состояния кнопки "избранное"
             setupFavoritesListener(product);
-            // Инициализация состояния корзины
             setupCartListener(product);
 
-            // Добавляем слушатель для избранного
             favoriteButton.setOnClickListener(v -> {
-                userDataListener.isFavorite(String.valueOf(product.getProductId()), isFavorite -> {
-                    if (isFavorite) {
-                        userDataListener.removeFromFavorites(String.valueOf(product.getProductId()));
-                        favoriteButton.setImageResource(R.drawable.heart_icon);
-                    } else {
-                        userDataListener.addToFavorites(String.valueOf(product.getProductId()));
-                        favoriteButton.setImageResource(R.drawable.fill_heart_icon);
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(itemView.getContext(), "Для добавления в избранное необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
                     }
-                    notifyItemChanged(getAdapterPosition()); // Обновляем UI
-                });
+                    userDataListener.isFavorite(String.valueOf(product.getProductId()), isFavorite -> {
+                        if (isFavorite) {
+                            userDataListener.removeFromFavorites(String.valueOf(product.getProductId()));
+                            favoriteButton.setImageResource(R.drawable.heart_icon);
+                        } else {
+                            userDataListener.addToFavorites(String.valueOf(product.getProductId()));
+                            favoriteButton.setImageResource(R.drawable.fill_heart_icon);
+                        }
+                        notifyItemChanged(getAdapterPosition());
+                    });
+                } catch (Exception e) {
+                    Toast.makeText(itemView.getContext(), "Ошибка при работе с избранным", Toast.LENGTH_SHORT).show();
+                    Log.e("Favorites", "Error: " + e.getMessage());
+                }
             });
 
-            // Обработка клика на кнопку добавления в корзину
             addToCartButton.setOnClickListener(v -> {
-                addToCartButton.setVisibility(View.GONE);
-                cartQuantityLayout.setVisibility(View.VISIBLE);
-                cartQuantity.setText("1");
-                userDataListener.addToCart(String.valueOf(product.getProductId()), 1, product.getPrice());
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(itemView.getContext(), "Для добавления в корзину необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    addToCartButton.setVisibility(View.GONE);
+                    cartQuantityLayout.setVisibility(View.VISIBLE);
+                    cartQuantity.setText("1");
+                    userDataListener.addToCart(String.valueOf(product.getProductId()), 1, product.getPrice());
+                } catch (Exception e) {
+                    Toast.makeText(itemView.getContext(), "Ошибка при добавлении в корзину", Toast.LENGTH_SHORT).show();
+                    Log.e("Cart", "Error: " + e.getMessage());
+                }
             });
 
-            // Увеличение количества в корзине
             incrementButton.setOnClickListener(v -> {
-                int count = Integer.parseInt(cartQuantity.getText().toString());
-                cartQuantity.setText(String.valueOf(count + 1));
-                userDataListener.addToCart(String.valueOf(product.getProductId()), count + 1, product.getPrice());
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(itemView.getContext(), "Для изменения количества необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    int count = Integer.parseInt(cartQuantity.getText().toString());
+                    cartQuantity.setText(String.valueOf(count + 1));
+                    userDataListener.addToCart(String.valueOf(product.getProductId()), count + 1, product.getPrice());
+                } catch (Exception e) {
+                    Toast.makeText(itemView.getContext(), "Ошибка при изменении количества", Toast.LENGTH_SHORT).show();
+                    Log.e("Cart", "Error: " + e.getMessage());
+                }
             });
 
-            // Уменьшение количества в корзине
             decrementButton.setOnClickListener(v -> {
-                int count = Integer.parseInt(cartQuantity.getText().toString());
-                if (count > 1) {
-                    cartQuantity.setText(String.valueOf(count - 1));
-                    userDataListener.addToCart(String.valueOf(product.getProductId()), count - 1, product.getPrice());
-                } else {
-                    cartQuantityLayout.setVisibility(View.GONE);
-                    addToCartButton.setVisibility(View.VISIBLE);
-                    userDataListener.removeFromCart(String.valueOf(product.getProductId()));
+                try {
+                    if (auth.getCurrentUser() == null) {
+                        Toast.makeText(itemView.getContext(), "Для изменения количества необходимо войти в аккаунт", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    int count = Integer.parseInt(cartQuantity.getText().toString());
+                    if (count > 1) {
+                        cartQuantity.setText(String.valueOf(count - 1));
+                        userDataListener.addToCart(String.valueOf(product.getProductId()), count - 1, product.getPrice());
+                    } else {
+                        cartQuantityLayout.setVisibility(View.GONE);
+                        addToCartButton.setVisibility(View.VISIBLE);
+                        userDataListener.removeFromCart(String.valueOf(product.getProductId()));
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(itemView.getContext(), "Ошибка при изменении количества", Toast.LENGTH_SHORT).show();
+                    Log.e("Cart", "Error: " + e.getMessage());
                 }
             });
         }
 
-        // Метод для отслеживания изменений в корзине
         private void setupCartListener(Product product) {
             if (cartListener != null) {
                 FirebaseDatabase.getInstance().getReference("users").child(userId).child("cart")
@@ -186,10 +218,9 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
                     if (snapshot.exists()) {
                         for (DataSnapshot cartSnapshot : snapshot.getChildren()) {
                             if (cartSnapshot.getKey().equals(String.valueOf(product.getProductId()))) {
-                                // Получаем количество из Firebase и безопасно конвертируем в int
                                 Long quantityLong = cartSnapshot.child("quantity").getValue(Long.class);
                                 if (quantityLong != null) {
-                                    int quantity = quantityLong.intValue();  // Конвертируем Long в int
+                                    int quantity = quantityLong.intValue();
                                     cartQuantity.setText(String.valueOf(quantity));
                                     cartQuantityLayout.setVisibility(View.VISIBLE);
                                     addToCartButton.setVisibility(View.GONE);
@@ -241,7 +272,5 @@ public class ProductWithCartAdapter extends RecyclerView.Adapter<ProductWithCart
             FirebaseDatabase.getInstance().getReference("users").child(userId).child("favorites")
                     .addValueEventListener(favoritesListener);
         }
-
-
     }
 }

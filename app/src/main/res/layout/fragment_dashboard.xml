@@ -95,18 +95,6 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/user_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autoSizeMaxTextSize="25sp"
-            android:autoSizeMinTextSize="8sp"
-            android:autoSizeStepGranularity="2sp"
-            android:autoSizeTextType="uniform"
-            android:text="Имя фамилия"
-            android:textStyle="bold"
-            android:textSize="16sp" />
-
-        <TextView
             android:id="@+id/user_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -118,17 +106,6 @@
             android:textColor="@android:color/darker_gray"
             android:textSize="14sp" />
 
-        <TextView
-            android:id="@+id/user_number"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:autoSizeMaxTextSize="20sp"
-            android:autoSizeMinTextSize="8sp"
-            android:autoSizeStepGranularity="2sp"
-            android:autoSizeTextType="uniform"
-            android:text="номер"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp" />
     </LinearLayout>
 
 

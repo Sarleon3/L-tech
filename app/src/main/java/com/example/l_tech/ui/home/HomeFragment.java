@@ -37,17 +37,16 @@ public class HomeFragment extends Fragment {
     private FirebaseAuth auth;
     private HomeAdapter homeAdapter;
     private List<ProductBlock> blocks = new ArrayList<>();
-         String userId ;
+    private String userId;
     private UserDataListener.DataChangeCallback callback;
     private UserDataListener userDataListener;
 
-
     private final List<Pair<String, ProductBlockType>> categoryBlocks = Arrays.asList(
             new Pair<>("Смартфоны", ProductBlockType.SMALL),
-            new Pair<>("Смартфоны", ProductBlockType.WITH_CART),
-            new Pair<>("Смартфоны", ProductBlockType.SMALL),
-            new Pair<>("Смартфоны", ProductBlockType.WITH_CART),
-             new Pair<>("Смартфоны", ProductBlockType.WITH_CART)
+            new Pair<>("Телевизоры", ProductBlockType.WITH_CART),
+            new Pair<>("Ноутбуки", ProductBlockType.SMALL),
+            new Pair<>("Видеокарты", ProductBlockType.WITH_CART),
+            new Pair<>("Наушники", ProductBlockType.WITH_CART)
     );
 
     @Override
@@ -64,7 +63,6 @@ public class HomeFragment extends Fragment {
         } else {
             userId = "guest";
         }
-
 
         // Создаем callback
         callback = new UserDataListener.DataChangeCallback() {
@@ -92,7 +90,6 @@ public class HomeFragment extends Fragment {
         userDataListener = new UserDataListener(userId, callback) {
             @Override
             public void isFavorite(String productId, Callback callback) {
-
             }
         };
 
@@ -105,8 +102,29 @@ public class HomeFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d(TAG, "onDestroyView: очистка данных при уничтожении фрагмента");
+        clearData();
+    }
+
+    private void clearData() {
+        if (blocks != null) {
+            blocks.clear();
+        }
+        if (homeAdapter != null) {
+            homeAdapter = null;
+        }
+        if (recyclerView != null) {
+            recyclerView.setAdapter(null);
+        }
+    }
 
     private void loadProducts() {
+        // Очищаем блоки перед загрузкой новых данных
+        blocks.clear();
+        
         AtomicInteger completedRequests = new AtomicInteger(0);
         Log.d(TAG, "loadProducts: Начинаем загрузку продуктов. Всего категорий: " + categoryBlocks.size());
 
@@ -159,15 +177,13 @@ public class HomeFragment extends Fragment {
         }
     }
 
-
-
-
     private void updateRecyclerView() {
+        if (!isAdded()) return; // Проверяем, что фрагмент все еще прикреплен к активности
+        
         requireActivity().runOnUiThread(() -> {
             Log.d(TAG, "updateRecyclerView: обновляем список товаров в RecyclerView");
-            homeAdapter =  new HomeAdapter(getContext(), blocks, userId, userDataListener);
+            homeAdapter = new HomeAdapter(getContext(), blocks, userId, userDataListener);
             recyclerView.setAdapter(homeAdapter);
         });
     }
-
 }
